@@ -30,8 +30,9 @@ npm run build
 
 **Publish directory:**
 ```
-.next
+DEIXE VAZIO OU REMOVA COMPLETAMENTE
 ```
+⚠️ **IMPORTANTE**: O plugin `@netlify/plugin-nextjs` cuida automaticamente do diretório de publicação. Não defina manualmente!
 
 **Plugin:**
 - `@netlify/plugin-nextjs` (será instalado automaticamente)
