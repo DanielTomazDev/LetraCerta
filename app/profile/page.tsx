@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import AddSongModal from "@/app/components/AddSongModal";
+import ImportSongModal from "@/app/components/ImportSongModal";
 
 interface Song {
   _id: string;
@@ -36,6 +38,8 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [favoriteSongs, setFavoriteSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddSongModal, setShowAddSongModal] = useState(false);
+  const [showImportSongModal, setShowImportSongModal] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -130,6 +134,7 @@ export default function ProfilePage() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => setShowAddSongModal(true)}
             className="bg-dark-card border border-primary/20 rounded-xl p-6 hover:border-primary transition-all text-left"
           >
             <Plus className="h-6 w-6 text-primary mb-3" />
@@ -142,14 +147,15 @@ export default function ProfilePage() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => setShowImportSongModal(true)}
             className="bg-dark-card border border-primary/20 rounded-xl p-6 hover:border-primary transition-all text-left"
           >
             <Upload className="h-6 w-6 text-primary mb-3" />
             <h3 className="text-white font-semibold mb-1">
-              Importar Cifra
+              Importar de Site
             </h3>
             <p className="text-gray-400 text-sm">
-              Importe de arquivo .txt ou .chordpro
+              Importe de sites como Cifra Club, Letras.com, etc.
             </p>
           </motion.button>
 
@@ -206,6 +212,18 @@ export default function ProfilePage() {
           )}
         </div>
       </main>
+
+      {/* Add Song Modal */}
+      <AddSongModal
+        isOpen={showAddSongModal}
+        onClose={() => setShowAddSongModal(false)}
+      />
+
+      {/* Import Song Modal */}
+      <ImportSongModal
+        isOpen={showImportSongModal}
+        onClose={() => setShowImportSongModal(false)}
+      />
     </div>
   );
 }

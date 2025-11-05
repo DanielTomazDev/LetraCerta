@@ -14,9 +14,19 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("songs")
-      .select("*, users!songs_createdBy_fkey(id, name, image)", {
-        count: "exact",
-      })
+      .select(
+        `
+        *,
+        users!songs_createdBy_fkey (
+          id,
+          name,
+          image
+        )
+      `,
+        {
+          count: "exact",
+        }
+      )
       .eq("isPublic", true)
       .order("createdAt", { ascending: false })
       .range(from, to);
@@ -30,29 +40,37 @@ export async function GET(request: NextRequest) {
     const { data: songs, error, count } = await query;
 
     if (error) {
+      console.error("Supabase query error:", error);
       throw error;
     }
 
     // Formatar dados para manter compatibilidade
-    const formattedSongs = songs?.map((song: any) => ({
-      _id: song.id,
-      title: song.title,
-      artist: song.artist,
-      lyrics: song.lyrics,
-      chords: song.chords,
-      genre: song.genre,
-      tags: song.tags,
-      isPublic: song.isPublic,
-      originalKey: song.originalKey,
-      createdAt: song.createdAt,
-      updatedAt: song.updatedAt,
-      createdBy: song.users
-        ? {
-            name: song.users.name,
-            image: song.users.image,
-          }
-        : null,
-    }));
+    const formattedSongs = songs?.map((song: any) => {
+      // A estrutura do Supabase pode variar dependendo do join
+      const userData = Array.isArray(song.users)
+        ? song.users[0]
+        : song.users;
+
+      return {
+        _id: song.id,
+        title: song.title,
+        artist: song.artist,
+        lyrics: song.lyrics,
+        chords: song.chords,
+        genre: song.genre,
+        tags: song.tags,
+        isPublic: song.isPublic,
+        originalKey: song.originalKey,
+        createdAt: song.createdAt,
+        updatedAt: song.updatedAt,
+        createdBy: userData
+          ? {
+              name: userData.name,
+              image: userData.image,
+            }
+          : null,
+      };
+    });
 
     return NextResponse.json({
       songs: formattedSongs || [],

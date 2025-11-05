@@ -2,6 +2,38 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { supabase } from "@/lib/dbConnect";
 
+// Detectar URL automaticamente em produção
+// O NextAuth usa NEXTAUTH_URL automaticamente, mas podemos melhorar a detecção
+const getBaseUrl = () => {
+  // Prioridade 1: NEXTAUTH_URL (definido manualmente pelo usuário)
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
+  }
+  
+  // Prioridade 2: URL do Netlify (fornecida automaticamente)
+  if (process.env.URL) {
+    return process.env.URL;
+  }
+  
+  // Prioridade 3: VERCEL_URL (para Vercel)
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Prioridade 4: Deprecated NETLIFY_URL (se ainda existir)
+  if (process.env.NETLIFY_URL) {
+    return `https://${process.env.NETLIFY_URL}`;
+  }
+  
+  // Fallback para desenvolvimento local
+  return "http://localhost:3000";
+};
+
+// Definir NEXTAUTH_URL se não estiver definido (para detecção automática)
+if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === "production") {
+  process.env.NEXTAUTH_URL = getBaseUrl();
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({

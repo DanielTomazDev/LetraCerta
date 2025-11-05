@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Navbar from "./components/Navbar";
 import SearchBar from "./components/SearchBar";
 import SongCard from "./components/SongCard";
+import AddSongModal from "./components/AddSongModal";
+import ImportSongModal from "./components/ImportSongModal";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Music2, TrendingUp, Star } from "lucide-react";
+import { Music2, TrendingUp, Star, Plus, Download } from "lucide-react";
 
 interface Song {
   _id: string;
@@ -22,9 +25,12 @@ interface Song {
 
 export default function Home() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddSongModal, setShowAddSongModal] = useState(false);
+  const [showImportSongModal, setShowImportSongModal] = useState(false);
 
   useEffect(() => {
     fetchSongs();
@@ -46,9 +52,16 @@ export default function Home() {
       setLoading(true);
       const params = query ? { search: query } : {};
       const res = await axios.get("/api/songs", { params });
-      setSongs(res.data.songs || []);
-    } catch (error) {
+      
+      if (res.data && res.data.songs) {
+        setSongs(res.data.songs);
+      } else {
+        setSongs([]);
+      }
+    } catch (error: any) {
       console.error("Error fetching songs:", error);
+      // Se houver erro, ainda exibir array vazio para não quebrar a UI
+      setSongs([]);
     } finally {
       setLoading(false);
     }
@@ -116,9 +129,25 @@ export default function Home() {
               </h2>
             </div>
             {session && (
-              <div className="flex items-center space-x-1 text-gray-400">
-                <Star className="h-5 w-5" />
-                <span className="text-sm">Favoritos</span>
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowImportSongModal(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-secondary hover:bg-secondary/80 text-white rounded-lg transition-colors"
+                >
+                  <Download className="h-5 w-5" />
+                  <span>Importar</span>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowAddSongModal(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Adicionar</span>
+                </motion.button>
               </div>
             )}
           </div>
@@ -160,6 +189,20 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Add Song Modal */}
+      {session && (
+        <>
+          <AddSongModal
+            isOpen={showAddSongModal}
+            onClose={() => setShowAddSongModal(false)}
+          />
+          <ImportSongModal
+            isOpen={showImportSongModal}
+            onClose={() => setShowImportSongModal(false)}
+          />
+        </>
+      )}
     </div>
   );
 }
